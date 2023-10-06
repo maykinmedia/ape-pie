@@ -10,8 +10,9 @@ notably:
 from contextlib import contextmanager
 from typing import Any
 
-from furl import furl
-from requests import Session
+# See https://github.com/gruns/furl/issues/148 for ongoing furl typing
+from furl import furl  # type: ignore
+from requests import Response, Session
 
 from .exceptions import InvalidURLError
 from .typing import ConfigAdapter
@@ -79,7 +80,9 @@ class APIClient(Session):
         session_kwargs = adapter.get_client_session_kwargs()
         return cls(base_url, session_kwargs, **kwargs)
 
-    def request(self, method: str, url: str, *args: Any, **kwargs: Any):
+    def request(
+        self, method: str | bytes, url: str | bytes, *args, **kwargs
+    ) -> Response:
         for attr, val in self._request_kwargs.items():
             kwargs.setdefault(attr, val)
         url = self.to_absolute_url(url)
@@ -105,21 +108,27 @@ class APIClient(Session):
             if _should_close:
                 self.close()
 
-    def to_absolute_url(self, maybe_relative_url: str) -> str:
+    def to_absolute_url(self, maybe_relative_url: str | bytes) -> str:
+        # similar string normalization as in PreparedRequest.prepare_url
+        if isinstance(maybe_relative_url, bytes):
+            _maybe_relative_url = maybe_relative_url.decode("utf8")
+        else:
+            _maybe_relative_url = str(maybe_relative_url)
+
         base_furl = furl(self.base_url)
         # absolute here should be interpreted as "fully qualified url", with a protocol
         # and netloc
-        is_absolute = is_base_url(maybe_relative_url)
+        is_absolute = is_base_url(_maybe_relative_url)
         if is_absolute:
             # we established the target URL is absolute, so ensure that it's contained
             # within the self.base_url domain, otherwise you risk sending credentials
             # intended for the base URL to some other domain.
-            has_same_base = maybe_relative_url.startswith(self.base_url)
+            has_same_base = _maybe_relative_url.startswith(self.base_url)
             if not has_same_base:
                 raise InvalidURLError(
-                    f"Target URL {maybe_relative_url} has a different base URL than "
+                    f"Target URL {_maybe_relative_url} has a different base URL than "
                     f"the client ({self.base_url})."
                 )
-            return maybe_relative_url
+            return _maybe_relative_url
         fully_qualified = base_furl / maybe_relative_url
         return str(fully_qualified)
