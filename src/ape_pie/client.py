@@ -117,8 +117,8 @@ class APIClient(Session):
             has_same_base = maybe_relative_url.startswith(self.base_url)
             if not has_same_base:
                 raise InvalidURLError(
-                    f"Target URL {maybe_relative_url} has a different base URL than the "
-                    f"client ({self.base_url})."
+                    f"Target URL {maybe_relative_url} has a different base URL than "
+                    f"the client ({self.base_url})."
                 )
             return maybe_relative_url
         fully_qualified = base_furl / maybe_relative_url
