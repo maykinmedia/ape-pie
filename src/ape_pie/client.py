@@ -38,6 +38,28 @@ def is_base_url(url: str | furl) -> bool:
 
 
 class APIClient(Session):
+    """
+    A client instance, pinning a :class:`requests.Session` to a particular base URL.
+
+    You can use the usual requests API, e.g. ``client.post("some-url")`` after
+    instantiating a client instance. Whenever you use a relative URL, it will be
+    appended to the :attr:`base_url`.
+
+    The client prevents making requests to a different base/root than the configured
+    base URL, so you don't accidentally leak session-wide credentials to places they
+    were not intended to go.
+
+    :arg base_url: The base URL of the API/service you intend to consume. Relative URLs
+      in requests will be joined against this, while absolute/fully qualified URLs will
+      be validated against the base URL.
+    :arg request_kwargs: a mapping of keyword arguments you would typically pass to
+      :meth:`requests.Session.request` or set on the session after instantiating it.
+      They act as session-wide defaults which can be overridden on a per-request basis.
+    :arg kwargs: any additional keyword arguments are simply ignored, but you may want
+      to consume them if you're defining more specific client classes for your own
+      needs.
+    """
+
     base_url: str
     _request_kwargs: dict[str, Any]
     _in_context_manager: bool = False
@@ -83,6 +105,12 @@ class APIClient(Session):
     def request(
         self, method: str | bytes, url: str | bytes, *args, **kwargs
     ) -> Response:
+        """
+        Pre-process a request before calling the parent method.
+
+        See the upstream :meth:`requests.Session.request` documentation for the API
+        reference.
+        """
         for attr, val in self._request_kwargs.items():
             kwargs.setdefault(attr, val)
         url = self.to_absolute_url(url)

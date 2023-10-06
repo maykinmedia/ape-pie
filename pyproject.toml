@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ape-pie"
-version = "1.0.0"
+version = "0.1.0"
 authors = [
   { name="Maykin Media", email="support@maykinmedia.nl" },
   { name="Sergei Maertens", email="sergei@maykinmedia.nl" },
