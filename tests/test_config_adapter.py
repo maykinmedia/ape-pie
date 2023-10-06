@@ -113,6 +113,23 @@ def test_relative_urls_are_made_absolute(method):
 
 
 @given(method=http_methods)
+def test_relative_bytestring_urls_are_made_absolute(method):
+    adapter = TestConfigAdapter()
+    client = APIClient.configure_from(adapter)
+
+    with (
+        requests_mock.Mocker() as m,
+        client,
+    ):
+        m.register_uri(ANY, ANY)
+
+        client.request(method, b"foo")
+
+    assert len(m.request_history), 1
+    assert m.last_request.url == "https://from-factory.example.com/foo"
+
+
+@given(method=http_methods)
 def test_absolute_urls_must_match_base_url(method):
     adapter = TestConfigAdapter()
     client = APIClient.configure_from(adapter)

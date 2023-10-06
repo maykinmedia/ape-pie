@@ -158,5 +158,5 @@ class APIClient(Session):
                     f"the client ({self.base_url})."
                 )
             return _maybe_relative_url
-        fully_qualified = base_furl / maybe_relative_url
+        fully_qualified = base_furl / _maybe_relative_url
         return str(fully_qualified)
