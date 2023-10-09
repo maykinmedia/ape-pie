@@ -8,7 +8,7 @@ notably:
 * Providing a base_url and making this absolute
 """
 from contextlib import contextmanager
-from typing import Any
+from typing import Any, Type, TypeVar
 
 # See https://github.com/gruns/furl/issues/148 for ongoing furl typing
 from furl import furl  # type: ignore
@@ -35,6 +35,10 @@ def is_base_url(url: str | furl) -> bool:
     if not isinstance(url, furl):
         url = furl(url)
     return bool(url.scheme and url.netloc)
+
+
+# TODO Use typing.Self once we drop support for Py310
+Self = TypeVar("Self", bound="APIClient")
 
 
 class APIClient(Session):
@@ -97,7 +101,7 @@ class APIClient(Session):
         return super().__exit__(*args)
 
     @classmethod
-    def configure_from(cls, adapter: ConfigAdapter, **kwargs):
+    def configure_from(cls: Type[Self], adapter: ConfigAdapter, **kwargs) -> Self:
         base_url = adapter.get_client_base_url()
         session_kwargs = adapter.get_client_session_kwargs()
         return cls(base_url, session_kwargs, **kwargs)
