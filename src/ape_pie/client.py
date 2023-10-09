@@ -111,8 +111,6 @@ class APIClient(Session):
         See the upstream :meth:`requests.Session.request` documentation for the API
         reference.
         """
-        for attr, val in self._request_kwargs.items():
-            kwargs.setdefault(attr, val)
         url = self.to_absolute_url(url)
         with self._maybe_close_session():
             return super().request(method, url, *args, **kwargs)
