@@ -36,7 +36,11 @@ dependencies = [
 
 [project.optional-dependencies]
 docs = ["sphinx", "sphinx-rtd-theme"]
-types = ["types-requests", "mypy"]
+types = [
+    "mypy",
+    "types-requests",
+    "typing_extensions",
+]
 dev = [
     "pytest",
     "pytest-cov",
