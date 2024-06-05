@@ -7,6 +7,9 @@ notably:
 * Implementing the client as a ``Session`` subclass
 * Providing a base_url and making this absolute
 """
+
+from __future__ import annotations
+
 from contextlib import contextmanager
 from typing import Any
 
