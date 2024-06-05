@@ -11,7 +11,7 @@ notably:
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 # See https://github.com/gruns/furl/issues/148 for ongoing furl typing
 from furl import furl  # type: ignore
@@ -19,6 +19,11 @@ from requests import Response, Session
 
 from .exceptions import InvalidURLError
 from .typing import ConfigAdapter
+
+if TYPE_CHECKING:
+    # TODO Use typing.Self once we drop support for Py310
+    from typing_extensions import Self
+
 
 sentinel = object()
 
@@ -100,7 +105,7 @@ class APIClient(Session):
         return super().__exit__(*args)
 
     @classmethod
-    def configure_from(cls, adapter: ConfigAdapter, **kwargs):
+    def configure_from(cls: type[Self], adapter: ConfigAdapter, **kwargs) -> Self:
         base_url = adapter.get_client_base_url()
         session_kwargs = adapter.get_client_session_kwargs()
         return cls(base_url, session_kwargs, **kwargs)
