@@ -9,7 +9,7 @@
 project = "ape-pie"
 copyright = "2023, Maykin Media"
 author = "Maykin Media"
-release = "0.1.0"
+release = "0.2.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
