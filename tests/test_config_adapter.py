@@ -9,6 +9,7 @@ from requests_mock import ANY
 
 from ape_pie import APIClient
 from ape_pie.exceptions import InvalidURLError
+from ape_pie.typing import RequestKwargs
 
 
 class TestConfigAdapter:
@@ -17,7 +18,7 @@ class TestConfigAdapter:
         return "https://from-factory.example.com"
 
     @staticmethod
-    def get_client_session_kwargs():
+    def get_client_session_kwargs() -> RequestKwargs:
         return {
             "verify": False,
             "timeout": 20,

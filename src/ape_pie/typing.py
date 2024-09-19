@@ -1,4 +1,41 @@
-from typing import Any, Protocol
+from __future__ import annotations
+
+from http.cookiejar import CookieJar
+from typing import TYPE_CHECKING, Protocol, TypedDict
+
+if TYPE_CHECKING:
+    # imports from stubs
+    from _typeshed import Incomplete
+    from requests.api import _HeadersMapping
+    from requests.sessions import (
+        _Auth,
+        _Cert,
+        _Data,
+        _Files,
+        _HooksInput,
+        _Params,
+        _TextMapping,
+        _Timeout,
+        _Verify,
+    )
+
+
+class RequestKwargs(TypedDict, total=False):
+    # Supposed to be ParamSpec.kwargs of `requests.request`
+    params: _Params
+    data: _Data
+    headers: _HeadersMapping
+    cookies: CookieJar | _TextMapping | None
+    files: _Files | None
+    auth: _Auth | None
+    timeout: _Timeout | None
+    allow_redirects: bool
+    proxies: _TextMapping | None
+    hooks: _HooksInput | None
+    stream: bool | None
+    verify: _Verify | None
+    cert: _Cert | None
+    json: Incomplete
 
 
 class ConfigAdapter(Protocol):
@@ -8,7 +45,7 @@ class ConfigAdapter(Protocol):
         """
         ...
 
-    def get_client_session_kwargs(self) -> dict[str, Any]:  # pragma: no cover
+    def get_client_session_kwargs(self) -> RequestKwargs:  # pragma: no cover
         """
         Return kwargs to feed to :class:`requests.Session` when using the client.
 
