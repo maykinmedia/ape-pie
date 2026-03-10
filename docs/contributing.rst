@@ -5,11 +5,11 @@ Contributing
 Release flow
 ============
 
-Bump the version number using tbump:
+Bump the version number using bump-my-version:
 
 .. code-block:: bash
 
-    tbumb --only-patch <new-version>
+    bump-my-version bump major|minor|patch
 
 Update ``CHANGELOG.rst`` with the new version, release date and included changes.
 

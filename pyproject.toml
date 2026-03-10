@@ -19,6 +19,9 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -47,10 +50,8 @@ dev = [
     "hypothesis",
     "requests-mock",
     "tox",
-    "isort",
-    "black",
-    "flake8",
-    "tbump",
+    "ruff",
+    "bump-my-version",
     "tomli; python_version<'3.11'"
 ]
 
@@ -67,9 +68,12 @@ egg_base = "build"
 testpaths = "tests"
 pythonpath = "."
 
-[tool.isort]
-profile = "black"
-src_paths = ["src", "tests"]
+[tool.bumpversion]
+current_version = "0.2.0"
+files = [
+    {filename = "pyproject.toml"},
+    {filename = "docs/conf.py"},
+]
 
 [tool.coverage.run]
 branch = true
@@ -77,3 +81,25 @@ source = ["src"]
 
 [tool.coverage.report]
 skip_covered = true
+
+[tool.ruff.lint]
+extend-select = [
+    "UP",  # pyupgrade
+    "LOG", # logging
+    "G",
+    "I",   # isort
+    "E",   # pycodestyle
+    "F",   # pyflakes
+    "PERF",# perflint
+    "B",   # flake8-bugbear
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
