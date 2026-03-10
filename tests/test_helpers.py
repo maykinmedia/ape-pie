@@ -3,8 +3,7 @@ from urllib.parse import quote_plus, urlsplit
 
 import pytest
 from furl import furl
-from hypothesis import assume, example, given
-from hypothesis import strategies as st
+from hypothesis import assume, example, given, strategies as st
 from hypothesis.provisional import domains, urls
 
 from ape_pie.client import is_base_url

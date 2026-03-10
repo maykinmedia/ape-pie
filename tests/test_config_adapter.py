@@ -2,8 +2,7 @@ from unittest.mock import patch
 
 import pytest
 import requests_mock
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import given, strategies as st
 from requests.auth import HTTPBasicAuth
 from requests_mock import ANY
 
