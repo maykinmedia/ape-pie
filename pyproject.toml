@@ -68,6 +68,13 @@ egg_base = "build"
 testpaths = "tests"
 pythonpath = "."
 
+[tool.bumpversion]
+current_version = "0.2.0"
+files = [
+    {filename = "pyproject.toml"},
+    {filename = "docs/conf.py"},
+]
+
 [tool.coverage.run]
 branch = true
 source = ["src"]
