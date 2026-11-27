@@ -63,7 +63,7 @@ class APIClient(Session):
 
     base_url: str
     _request_kwargs: dict[str, Any]
-    _in_context_manager: bool = False
+    _context_depth: int = 0
 
     def __init__(
         self,
@@ -88,12 +88,21 @@ class APIClient(Session):
                 self._request_kwargs[k] = v
 
     def __enter__(self):
-        self._in_context_manager = True
+        # Track the nesting depth so that the context manager is re-entrant - the
+        # session (and its connection pools) must only be closed when the outermost
+        # block exits.
+        self._context_depth += 1
         return super().__enter__()
 
     def __exit__(self, *args):
-        self._in_context_manager = False
+        self._context_depth -= 1
+        if self._context_depth > 0:
+            return None
         return super().__exit__(*args)
+
+    @property
+    def _in_context_manager(self) -> bool:
+        return self._context_depth > 0
 
     @classmethod
     def configure_from(cls: type[Self], adapter: ConfigAdapter, **kwargs) -> Self:
