@@ -85,7 +85,7 @@ def test_applies_to_any_http_method(method):
 
         client.request(method, "https://from-factory.example.com/foo")
 
-    assert len(m.request_history), 1
+    assert len(m.request_history) == 1
     assert m.last_request.url == "https://from-factory.example.com/foo"
     assert m.last_request.method, method
     headers = m.last_request.headers
@@ -108,7 +108,7 @@ def test_relative_urls_are_made_absolute(method):
 
         client.request(method, "foo")
 
-    assert len(m.request_history), 1
+    assert len(m.request_history) == 1
     assert m.last_request.url == "https://from-factory.example.com/foo"
 
 
@@ -125,7 +125,7 @@ def test_relative_bytestring_urls_are_made_absolute(method):
 
         client.request(method, b"foo")
 
-    assert len(m.request_history), 1
+    assert len(m.request_history) == 1
     assert m.last_request.url == "https://from-factory.example.com/foo"
 
 
@@ -151,7 +151,7 @@ def test_absolute_urls_must_match_base_url_happy_flow(method):
 
         client.request(method, "https://from-factory.example.com/foo/bar")
 
-    assert len(m.request_history), 1
+    assert len(m.request_history) == 1
     assert m.last_request.url == "https://from-factory.example.com/foo/bar"
 
 
@@ -167,7 +167,7 @@ def test_discouraged_usage_without_context(method):
 
         client.request(method, "foo")
 
-    assert len(m.request_history), 1
+    assert len(m.request_history) == 1
     mock_close.assert_called_once()
 
 
@@ -187,6 +187,6 @@ def test_encouraged_usage_with_context_do_not_close_prematurely(method):
         # may not be called inside context block
         mock_close.assert_not_called()
 
-    assert len(m.request_history), 1
+    assert len(m.request_history) == 1
     # must be called outside context block
     mock_close.assert_called_once()
