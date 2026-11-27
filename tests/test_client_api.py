@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from urllib.parse import unquote
 from uuid import UUID
 
@@ -5,6 +6,8 @@ import pytest
 from hypothesis import example, given, reject, strategies as st
 from requests import Session
 from requests.auth import HTTPBasicAuth
+from requests.cookies import RequestsCookieJar
+from requests.structures import CaseInsensitiveDict
 
 from ape_pie import APIClient, InvalidURLError
 from ape_pie.decorators import PathTemplate, path_escape
@@ -72,6 +75,55 @@ def test_config_does_not_mutate():
 
     assert one.auth == ("djkhaled", "youplayedyourself")
     assert another_one.auth == ("djkhaled", "youplayedyourself")
+
+
+@pytest.mark.parametrize(
+    "attr,value,expected_type",
+    [
+        ("headers", {"Foo": "Bar"}, CaseInsensitiveDict),
+        ("cookies", {"SessionID": "totallyunguessable"}, RequestsCookieJar),
+        ("auth", None, None),
+        ("auth", HTTPBasicAuth("superuser", "letmein"), HTTPBasicAuth),
+        ("proxies", {"http": "localhost:8888"}, dict),
+        # unsure if this should overwrite or (deep) merge by default
+        ("hooks", {"response": []}, dict),
+        ("params", {"foo": "bar"}, dict),
+        ("verify", True, bool),
+        ("verify", "/tmp/ca.pem", str),
+        ("cert", ("/tmp/cert.pem", "/tmp/key.pem"), tuple),
+        ("cert", "/tmp/cert.pem", str),
+        ("adapters", {}, OrderedDict),
+        ("stream", False, bool),
+        ("trust_env", True, bool),
+        ("max_redirects", 3, int),
+    ],
+)
+def test_client_request_kwargs_dont_mess_up_requests_types(
+    attr: str, value: object, expected_type: type[object] | None
+):
+    # take just the single attribute and verify it
+    kwargs: RequestKwargs = {}
+    kwargs[attr] = value
+    client = APIClient("https://example.com", kwargs)
+
+    result = getattr(client, attr)
+
+    if expected_type is None:
+        assert result is None
+    else:
+        assert isinstance(result, expected_type)
+
+
+def test_headers_extend_or_overwrite_default_headers():
+    client = APIClient(
+        "https://example.com",
+        request_kwargs={"headers": {"user-agent": "test/client"}},
+    )
+
+    # from requests' default_headers
+    assert "accept" in client.headers
+    # overwrite requests' default_headers
+    assert client.headers["User-Agent"] == "test/client"
 
 
 # relative paths as PathTemplate formats them, from one that doesn't start with "/"
