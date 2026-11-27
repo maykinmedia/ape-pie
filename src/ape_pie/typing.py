@@ -13,6 +13,8 @@ from typing import (
     overload,
 )
 
+from requests.cookies import RequestsCookieJar
+
 if TYPE_CHECKING:
     # imports from stubs
     from _typeshed import Incomplete
@@ -37,7 +39,7 @@ class RequestKwargs(TypedDict, total=False):
 
     # from BaseRequestKwargs - modern requests versions have requests._types
     headers: _HeadersMapping
-    cookies: CookieJar | _TextMapping | None
+    cookies: RequestsCookieJar | CookieJar | _TextMapping | None
     files: _Files | None
     auth: _Auth | None
     timeout: _Timeout | None

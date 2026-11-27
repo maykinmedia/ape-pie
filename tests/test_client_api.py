@@ -5,6 +5,7 @@ from uuid import UUID
 import pytest
 from hypothesis import example, given, reject, strategies as st
 from requests import Session
+from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 from requests.cookies import RequestsCookieJar
 from requests.structures import CaseInsensitiveDict
@@ -92,7 +93,7 @@ def test_config_does_not_mutate():
         ("verify", "/tmp/ca.pem", str),
         ("cert", ("/tmp/cert.pem", "/tmp/key.pem"), tuple),
         ("cert", "/tmp/cert.pem", str),
-        ("adapters", {}, OrderedDict),
+        ("adapters", {"custom://": HTTPAdapter()}, OrderedDict),
         ("stream", False, bool),
         ("trust_env", True, bool),
         ("max_redirects", 3, int),
