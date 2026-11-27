@@ -10,13 +10,15 @@ notably:
 
 from __future__ import annotations
 
-from collections.abc import MutableMapping
+from collections.abc import Mapping, MutableMapping
 from contextlib import contextmanager
+from http.cookiejar import CookieJar
 from typing import Self
 
 # See https://github.com/gruns/furl/issues/148 for ongoing furl typing
 from furl import furl  # type: ignore
 from requests import Response, Session
+from requests.cookies import RequestsCookieJar, cookiejar_from_dict
 
 from .exceptions import InvalidURLError
 from .typing import ConfigAdapter, RequestKwargs
@@ -80,13 +82,38 @@ class APIClient(Session):
         self.base_url = base_url
 
         self._request_kwargs = {}
+        self._process_request_kwargs(request_kwargs)
+
+    def _process_request_kwargs(self, request_kwargs: RequestKwargs | None) -> None:
+        if request_kwargs is None:
+            return
+
         # set the attributes that requests.Session supports directly
-        for k, v in request_kwargs.items():
-            if k in self.__attrs__:
-                setattr(self, k, v)
-            else:
-                # store the remainder so we can inject it in the ``request`` method.
-                self._request_kwargs[k] = v
+        for attr, value in request_kwargs.items():
+            match attr:
+                case "headers":
+                    assert isinstance(value, Mapping)
+                    self.headers.update(value)
+                case "cookies" if isinstance(value, CookieJar):
+                    # requests.Session types don't allow it and initializes the cookies
+                    #  as attribute as RequestsCookieJar - best to be defensive?
+                    raise TypeError(
+                        "httplib cookiejar is not supported on client instances"
+                    )
+                case "cookies" if isinstance(value, RequestsCookieJar):
+                    self.cookies = value
+                case "cookies" if isinstance(value, Mapping):
+                    # this mutates the passed in cookiejar
+                    cookiejar_from_dict(value, cookiejar=self.cookies)
+                case "adapters":
+                    assert isinstance(value, Mapping)
+                    for prefix, adapter in value.items():
+                        self.mount(prefix, adapter)
+                case _ if attr in self.__attrs__:
+                    setattr(self, attr, value)
+                case _:
+                    # store the remainder so we can inject it in the ``request`` method.
+                    self._request_kwargs[attr] = value
 
     def __enter__(self):
         self._in_context_manager = True

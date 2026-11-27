@@ -13,6 +13,8 @@ from typing import (
     overload,
 )
 
+from requests.cookies import RequestsCookieJar
+
 if TYPE_CHECKING:
     # imports from stubs
     from _typeshed import Incomplete
@@ -31,11 +33,13 @@ if TYPE_CHECKING:
 
 
 class RequestKwargs(TypedDict, total=False):
-    # Supposed to be ParamSpec.kwargs of `requests.request`
-    params: _Params
-    data: _Data
+    """
+        Supposed to be ParamSpec.kwargs of `requests.request`
+    `"""
+
+    # from BaseRequestKwargs - modern requests versions have requests._types
     headers: _HeadersMapping
-    cookies: CookieJar | _TextMapping | None
+    cookies: RequestsCookieJar | CookieJar | _TextMapping | None
     files: _Files | None
     auth: _Auth | None
     timeout: _Timeout | None
@@ -45,7 +49,14 @@ class RequestKwargs(TypedDict, total=False):
     stream: bool | None
     verify: _Verify | None
     cert: _Cert | None
+    # from RequestKwargs, which subclasses BaseRequestKwargs
+    params: _Params
+    data: _Data
     json: Incomplete
+    # not taken directly by requests.request, but can be set on requests.Session,
+    # see :attr:`requests.Session.__attrs__`
+    trust_env: bool
+    max_redirects: int
 
 
 class ConfigAdapter(Protocol):
