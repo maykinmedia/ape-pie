@@ -47,7 +47,7 @@ def test_protocol_but_no_netloc(protocol, path):
 
 @given(urls())
 def test_rfc_3986_url(url):
-    assert url.startswith("http://") or url.startswith("https://")
+    assert url.startswith(("http://", "https://"))
     bits = urlsplit(url)
     # not allowed for communication between hosts - it's a way to request a dynamically
     # allocated port number.
