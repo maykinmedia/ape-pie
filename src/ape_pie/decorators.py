@@ -21,19 +21,17 @@ from typing import (
     Concatenate,
     NamedTuple,
     ParamSpec,
-    Protocol,
     TypeAlias,
     TypeVar,
     overload,
 )
 from urllib.parse import quote, unquote, unquote_to_bytes
 
+from .typing import EndpointMethod, URLPath
+
 _P = ParamSpec("_P")
 _T = TypeVar("_T")
-_T_co = TypeVar("_T_co", covariant=True)
 _S = TypeVar("_S")
-_S_contra = TypeVar("_S_contra", contravariant=True)
-_URLPath: TypeAlias = str
 
 
 def path_escape(string: str) -> str:
@@ -252,19 +250,6 @@ def _value_ends(text: str, start: int) -> Iterator[int]:
             yield end
 
 
-class EndpointMethod(Protocol[_S_contra, _P, _T_co]):
-    "A method decorated with :class:`endpoint`."
-
-    @overload
-    def __get__(
-        self, instance: None, owner: type[object] | None = None, /
-    ) -> Callable[Concatenate[_S_contra, _P], _T_co]: ...
-    @overload
-    def __get__(
-        self, instance: _S_contra, owner: type[object] | None = None, /
-    ) -> Callable[_P, _T_co]: ...
-
-
 class endpoint:
     """
     Pass a url path, formatted from the arguments, as the first positional argument
@@ -288,11 +273,11 @@ class endpoint:
 
     @overload
     def __call__(
-        self, f: Callable[Concatenate[_URLPath, _P], _T], /
+        self, f: Callable[Concatenate[URLPath, _P], _T], /
     ) -> Callable[_P, _T]: ...
     @overload
     def __call__(
-        self, f: Callable[Concatenate[_S, _URLPath, _P], _T], /
+        self, f: Callable[Concatenate[_S, URLPath, _P], _T], /
     ) -> EndpointMethod[_S, _P, _T]: ...
     def __call__(self, f: Callable[..., object], /) -> object:
         return _Endpoint(self.template, f)
