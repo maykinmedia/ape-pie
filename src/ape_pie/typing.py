@@ -1,7 +1,17 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from http.cookiejar import CookieJar
-from typing import TYPE_CHECKING, Protocol, TypedDict
+from typing import (
+    TYPE_CHECKING,
+    Concatenate,
+    ParamSpec,
+    Protocol,
+    TypeAlias,
+    TypedDict,
+    TypeVar,
+    overload,
+)
 
 if TYPE_CHECKING:
     # imports from stubs
@@ -63,3 +73,27 @@ class ConfigAdapter(Protocol):
                 response = client.get("some/relative/path", timeout=10)
         """
         ...
+
+
+_P = ParamSpec("_P")
+_T_co = TypeVar("_T_co", covariant=True)
+_S_contra = TypeVar("_S_contra", contravariant=True)
+
+URLPath: TypeAlias = str
+"The url path :class:`ape_pie.endpoint` passes to the function it decorates."
+
+
+class EndpointMethod(Protocol[_S_contra, _P, _T_co]):
+    """
+    A method decorated with :class:`ape_pie.endpoint`: on an instance of
+    ``_S_contra`` it takes the parameters ``_P`` and returns ``_T_co``.
+    """
+
+    @overload
+    def __get__(
+        self, instance: None, owner: type[object] | None = None, /
+    ) -> Callable[Concatenate[_S_contra, _P], _T_co]: ...
+    @overload
+    def __get__(
+        self, instance: _S_contra, owner: type[object] | None = None, /
+    ) -> Callable[_P, _T_co]: ...

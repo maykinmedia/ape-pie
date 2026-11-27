@@ -159,3 +159,21 @@ class APIClient(Session):
             return _maybe_relative_url
         fully_qualified = base_furl / _maybe_relative_url
         return str(fully_qualified)
+
+    def to_relative_url(self, absolute_url: str) -> str:
+        """
+        Return the part of ``absolute_url`` after the :attr:`base_url`, the inverse of
+        :meth:`to_absolute_url`. Use it with ``PathTemplate.match`` to get the ids out
+        of a resource URL the API returned.
+
+        :raises InvalidURLError: if ``absolute_url`` is not within the base URL.
+        """
+        base_url = self.base_url.removesuffix("/")
+        if absolute_url == base_url:
+            return ""
+        if not absolute_url.startswith(f"{base_url}/"):
+            raise InvalidURLError(
+                f"Target URL {absolute_url} is not within the base URL "
+                f"({self.base_url})."
+            )
+        return absolute_url.removeprefix(f"{base_url}/")
