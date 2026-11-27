@@ -90,7 +90,7 @@ def test_to_relative_url_inverts_to_absolute_url(base_url: str, path: str):
 
     relative_url = client.to_relative_url(client.to_absolute_url(path))
 
-    # furl unescapes the sub-delims, ":" and "@"
+    # path_escape gives "foo%3Abar", which furl normalises to "foo:bar"
     assert decoded(relative_url) == decoded(path)
 
 
@@ -125,7 +125,10 @@ def test_matches_the_values_of_a_resource_url(base_url: str, zaak_uuid: str, uui
     try:
         path = ZAAKEIGENSCHAP.format(zaak_uuid=zaak_uuid, uuid=uuid)
     except ValueError:
-        reject()  # a dot-segment
+        # zaak_uuid or uuid is "", "." or "..": a server would read
+        # "zaken/../zaakeigenschappen/1" as "zaakeigenschappen/1"
+        reject()
+    # as an API returns it: furl normalises "zaken/a%2Cb/…" to "zaken/a,b/…"
     url = client.to_absolute_url(path)
 
     assert ZAAKEIGENSCHAP.match(client.to_relative_url(url)) == {

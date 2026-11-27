@@ -12,9 +12,9 @@ import inspect
 import re
 import string
 from codecs import getincrementaldecoder
-from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from functools import cache, cached_property, update_wrapper
-from itertools import islice
+from itertools import chain, islice
 from keyword import iskeyword
 from types import MethodType
 from typing import (
@@ -56,6 +56,8 @@ class _Field(NamedTuple):
         return path_escape(format(value, self.format_spec))
 
 
+# a segment of a template, between its "/"s: "foo/ba{r}/baz" has the segments
+# ("foo",), ("ba", _Field("r", None, "")) and ("baz",)
 _Segment: TypeAlias = tuple[str | _Field, ...]
 _CONVERSIONS: Mapping[str, Callable[[object], str]] = {"r": repr, "s": str, "a": ascii}
 _DOT_SEGMENTS = frozenset({"", ".", ".."})
@@ -73,11 +75,15 @@ class PathTemplate:
     >>> PathTemplate("users/{uid}/orders").format(uid="../admin")
     'users/..%2Fadmin/orders'
 
+    A path is made of segments, the parts between the slashes: ``users/{uid}/orders``
+    has the segments ``users``, ``{uid}`` and ``orders``. A segment can mix text and
+    fields, like ``v{major}.{minor}``.
+
     A conversion (``!r``) or format spec (``:05d``) applies to the value before it is
     escaped, as in an f-string. A segment with a field in it must not format to ``""``,
     ``"."`` or ``".."``, which would address another resource (``users/`` for
-    ``users/{uid}``) or be removed by URL normalization; that raises
-    :class:`ValueError`.
+    ``users/{uid}``) or be removed by URL normalization (``zaken/../rollen/1`` is
+    ``rollen/1``); that raises :class:`ValueError`.
 
     :meth:`parse` and :meth:`match` go the other way, from a path to the values, e.g.
     to get the ids out of a resource URL an API returned.
@@ -85,16 +91,15 @@ class PathTemplate:
     >>> PathTemplate("zaken/{zaak_uuid}/rollen/{uuid}").match("zaken/1a/rollen/2b")
     {'zaak_uuid': '1a', 'uuid': '2b'}
 
-    Laws, for a template ``t`` without ``%`` in its literal text and ``p =
-    PathTemplate(t)``:
+    For a template without ``%`` in its text:
 
-    * ``[unquote(s) for s in p.format(**v).split("/")]`` is ``t`` split on the ``/``
-      in its literal text, each segment formatted with ``**v``. So the values never
-      add or remove a segment, and ``unquote(p.format(**v)) == t.format(**v)``.
-    * For string values and fields without a conversion or format spec, ``v`` is in
-      ``p.parse(p.format(**v))``, and every ``w`` in ``p.parse(path)`` formats to
-      ``path``, up to the percent-encoding in each segment.
-    * With at most one field per segment, ``p.parse(path)`` has at most one parse.
+    * A value never adds or removes a segment: ``format(uid="a/b")`` is
+      ``"users/a%2Fb/orders"``, still three segments.
+    * :meth:`match` gives back the values a path was formatted from, as strings:
+      ``{"uid": "a/b"}``, or ``"00005"`` for ``{i:05d}``.
+    * With at most one field per segment, a path matches in at most one way. With
+      more, ``{a}-{b}`` matches ``x-y-z`` as ``x`` and ``y-z``, or as ``x-y`` and
+      ``z``, and :meth:`match` raises :class:`ValueError`.
     """
 
     template: str
@@ -181,14 +186,14 @@ def _format_segment(segment: _Segment, values: Mapping[str, object]) -> str:
 
 
 def _match_all(
-    matchers: Sequence[_Matcher], values: dict[str, str]
+    matchers: Iterable[_Matcher], values: dict[str, str]
 ) -> Iterator[dict[str, str]]:
     "Extend values with each matcher in turn."
-    if not matchers:
-        yield values
-        return
-    for found in matchers[0](values):
-        yield from _match_all(matchers[1:], found)
+    found: Iterable[dict[str, str]] = [values]
+    for matcher in matchers:
+        # map takes this matcher now; a generator expression would look it up later
+        found = chain.from_iterable(map(matcher, found))
+    return iter(found)
 
 
 def _segment_matcher(segment: _Segment, text: str) -> _Matcher | None:
