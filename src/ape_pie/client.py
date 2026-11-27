@@ -11,7 +11,7 @@ notably:
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any
+from typing import Any, Self
 
 # See https://github.com/gruns/furl/issues/148 for ongoing furl typing
 from furl import furl  # type: ignore
@@ -19,10 +19,6 @@ from requests import Response, Session
 
 from .exceptions import InvalidURLError
 from .typing import ConfigAdapter, RequestKwargs
-
-if TYPE_CHECKING:
-    # TODO Use typing.Self once we drop support for Py310
-    from typing_extensions import Self
 
 
 def is_base_url(url: str | furl) -> bool:

@@ -11,13 +11,12 @@ authors = [
 ]
 description = "A small API client abstraction layer on top of requests."
 readme = "README.rst"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 keywords = ["api client", "requests"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -42,7 +41,6 @@ docs = ["sphinx", "sphinx-rtd-theme"]
 types = [
     "mypy",
     "types-requests",
-    "typing_extensions",
 ]
 dev = [
     "pytest",
@@ -52,7 +50,6 @@ dev = [
     "tox",
     "ruff",
     "bump-my-version",
-    "tomli; python_version<'3.11'"
 ]
 
 [tool.setuptools.packages.find]
