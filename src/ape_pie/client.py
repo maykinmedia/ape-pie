@@ -10,8 +10,9 @@ notably:
 
 from __future__ import annotations
 
+from collections.abc import MutableMapping
 from contextlib import contextmanager
-from typing import Any, Self
+from typing import Self
 
 # See https://github.com/gruns/furl/issues/148 for ongoing furl typing
 from furl import furl  # type: ignore
@@ -62,14 +63,14 @@ class APIClient(Session):
     """
 
     base_url: str
-    _request_kwargs: dict[str, Any]
+    _request_kwargs: MutableMapping[str, object]
     _in_context_manager: bool = False
 
     def __init__(
         self,
         base_url: str,
         request_kwargs: RequestKwargs | None = None,
-        **kwargs: Any,  # subclasses may require additional configuration
+        **kwargs: object,  # subclasses may require additional configuration
     ):
         # base class does not take any kwargs
         super().__init__()
